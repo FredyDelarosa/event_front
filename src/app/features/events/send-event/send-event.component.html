@@ -1,0 +1,12 @@
+<form class="event-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Zona de detección</mat-label>
+      <input matInput [(ngModel)]="zone" name="zone" maxlength="50" placeholder="Ej. Sala, Cocina, Patio">
+      <mat-hint align="end">{{ zone.length }} / 50</mat-hint>
+    </mat-form-field>
+  
+    <button mat-raised-button color="primary" (click)="sendEvent()">
+      Enviar Evento
+    </button>
+  </form>
+  
