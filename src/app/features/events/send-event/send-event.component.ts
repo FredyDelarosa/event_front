@@ -32,7 +32,7 @@ export class SendEventComponent {
 
     const eventData = { zone: this.zone };
     
-    this.http.post('http://54.175.223.65:8080/events', eventData).subscribe({
+    this.http.post('http://localhost:8080/events', eventData).subscribe({
       next: () => {
         alert('Evento enviado correctamente.');
         this.zone = '';

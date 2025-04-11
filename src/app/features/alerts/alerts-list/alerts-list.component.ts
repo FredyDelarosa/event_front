@@ -5,9 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableDataSource } from '@angular/material/table';
-import { GetAlertsUseCase } from '../../../domain/usecases/get-alerts.usecase';
 import { Alert } from '../../../core/models/alert.models';
-import { Subscription, interval } from 'rxjs';
+import { WebSocketService } from '../../../core/services/websocket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-alerts-list',
@@ -25,36 +25,23 @@ import { Subscription, interval } from 'rxjs';
 export class AlertsListComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['id', 'message', 'createdAt'];
   dataSource = new MatTableDataSource<Alert>([]);
-  private pollingSubscription!: Subscription;
+  private wsSubscription!: Subscription;
 
-  constructor(private getAlertsUseCase: GetAlertsUseCase) {}
+  constructor(private wsService: WebSocketService) {}
 
   ngOnInit(): void {
-    this.startPolling();
+    this.wsService.connect();
+  
+    this.wsSubscription = this.wsService.getAlertStream().subscribe((alert: Alert) => {
+      console.log('📌 Alerta recibida en componente:', alert);
+      this.dataSource.data = [...this.dataSource.data, alert];
+    });
   }
-
+  
   ngOnDestroy(): void {
-    this.stopPolling();
+    this.wsSubscription.unsubscribe();
+    this.wsService.disconnect();
+    console.log('🧹 WebSocket limpio al destruir el componente');
   }
-
-  startPolling(): void {
-    this.pollingSubscription = interval(5000).subscribe(() => {
-      this.loadAlerts();
-    });
-  }
-
-  stopPolling(): void {
-    if (this.pollingSubscription) {
-      this.pollingSubscription.unsubscribe();
-    }
-  }
-
-  loadAlerts(): void {
-    this.getAlertsUseCase.execute().subscribe({
-      next: (alerts) => {
-        this.dataSource.data = alerts;
-      },
-      error: (error) => console.error('Error obteniendo alertas:', error)
-    });
-  }
+  
 }
